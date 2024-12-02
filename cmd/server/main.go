@@ -5,25 +5,24 @@ import (
 	"log"
 	"net/http"
 	"time"
-)
 
-// Placeholder route
-func checkHealth(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Server is up and running")
-}
+	"github.com/mush1e/goWebServer/internal/handlers"
+)
 
 func main() {
 
 	// request multiplexer to match URL paths to handler functions.
 	router := http.NewServeMux()
 
-	router.HandleFunc("/health", checkHealth)
+	registerRoutes(router)
+
+	corsRouter := handlers.CORSMiddleware(router)
+	loggedRouter := handlers.LoggingMiddleware(corsRouter)
 
 	// server config
 	server := &http.Server{
 		Addr:         ":8080",
-		Handler:      router,
+		Handler:      loggedRouter,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
@@ -33,4 +32,8 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("Error starting server: %s\n", err)
 	}
+}
+
+func registerRoutes(router *http.ServeMux) {
+	router.HandleFunc("/health", handlers.CheckHealth)
 }
