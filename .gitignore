@@ -1,0 +1,36 @@
+# Binaries
+/group-chat-app
+
+# Dependency directories (vendor)
+vendor/
+
+# Configuration files with sensitive information
+*.env
+configs/*.yaml
+
+# IDE and Editor settings
+.vscode/
+.idea/
+*.iml
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Testing output
+*.out
+coverage/
+
+# Go Build and Cache Directories
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.a
+
+# Go Module Cache
+/go.sum
