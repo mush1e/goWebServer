@@ -2,21 +2,11 @@ package services
 
 import (
 	"errors"
-	"sync"
-	"time"
+	"strings"
 
+	"github.com/mush1e/goWebServer/internal/database"
+	"github.com/mush1e/goWebServer/internal/models"
 	"golang.org/x/crypto/bcrypt"
-)
-
-type User struct {
-	Username  string
-	Password  string
-	CreatedAt time.Time
-}
-
-var (
-	users      = make(map[string]User)
-	usersMutex = sync.Mutex{}
 )
 
 func RegisterUser(username, password string) error {
@@ -24,26 +14,22 @@ func RegisterUser(username, password string) error {
 		return errors.New("username and password cannot be empty")
 	}
 
-	// Hash the password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return errors.New("failed to hash password")
 	}
 
-	// Lock the map to ensure thread safety
-	usersMutex.Lock()
-	defer usersMutex.Unlock()
-
-	// Check if the username already exists
-	if _, exists := users[username]; exists {
-		return errors.New("username already taken")
+	user := models.User{
+		Username: username,
+		Password: string(hashedPassword),
 	}
 
-	// Store the new user with the hashed password
-	users[username] = User{
-		Username:  username,
-		Password:  string(hashedPassword), // Store hashed password
-		CreatedAt: time.Now(),
+	result := database.DB.Create(&user)
+	if result.Error != nil {
+		if strings.Contains(result.Error.Error(), "ERROR: duplicate key value violates unique constraint") {
+			return errors.New("username already taken")
+		}
+		return result.Error
 	}
 
 	return nil

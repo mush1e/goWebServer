@@ -4,18 +4,33 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/joho/godotenv"
+	"github.com/mush1e/goWebServer/internal/database"
 	"github.com/mush1e/goWebServer/internal/handlers"
+	"github.com/mush1e/goWebServer/internal/models"
 )
 
 func main() {
 
-	// request multiplexer to match URL paths to handler functions.
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	if err := database.Connect(); err != nil {
+		log.Fatalf("Error connecting to the database: %s", err)
+	}
+
+	if os.Getenv("ENV") == "development" {
+		if err := database.DB.AutoMigrate(&models.User{}); err != nil {
+			log.Fatalf("Error migrating database: %s", err)
+		}
+	}
+
 	router := http.NewServeMux()
-
 	registerRoutes(router)
-
 	corsRouter := handlers.CORSMiddleware(router)
 	loggedRouter := handlers.LoggingMiddleware(corsRouter)
 
