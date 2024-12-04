@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -9,28 +8,29 @@ import (
 	"github.com/mush1e/goWebServer/internal/services"
 )
 
+func GetRegisterUser(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./web/register.html")
+}
+
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
-	var requestData struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if err := services.RegisterUser(requestData.Username, requestData.Password); err != nil {
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	if err := services.RegisterUser(username, password); err != nil {
 		if err.Error() == "username already taken" {
-			http.Error(w, err.Error(), http.StatusConflict)
+			w.WriteHeader(http.StatusConflict)
+			return
 		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
-		return
 	}
-
 	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, "User %s registered successfully", requestData.Username)
 }
 
 func CheckHealth(w http.ResponseWriter, r *http.Request) {

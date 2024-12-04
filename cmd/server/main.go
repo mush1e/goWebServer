@@ -36,5 +36,6 @@ func main() {
 
 func registerRoutes(router *http.ServeMux) {
 	router.HandleFunc("GET /health", handlers.CheckHealth)
+	router.HandleFunc("GET /register", handlers.GetRegisterUser)
 	router.HandleFunc("POST /register", handlers.RegisterUser)
 }
