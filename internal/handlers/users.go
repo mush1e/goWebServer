@@ -17,10 +17,8 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-
 	if err := services.RegisterUser(username, password); err != nil {
 		if err.Error() == "username already taken" {
 			w.WriteHeader(http.StatusConflict)

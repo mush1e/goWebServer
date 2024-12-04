@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>User Registration</title>
+    <!-- Load HTMX from CDN -->
     <script src="https://unpkg.com/htmx.org@1.7.0"></script>
 </head>
 <body>
@@ -21,5 +22,21 @@
     </form>
 
     <div id="result"></div>
+    <script>
+        document.body.addEventListener('htmx:afterRequest', (event) => {
+            const target = document.querySelector("#result");
+
+            // Handle different status codes
+            if (event.detail.xhr.status === 201) {
+                target.innerHTML = `<div style='color: green;'>User registered successfully</div>`;
+            } else if (event.detail.xhr.status === 409) {
+                target.innerHTML = `<div style='color: red;'>Username already taken</div>`;
+            } else if (event.detail.xhr.status === 400) {
+                target.innerHTML = `<div style='color: red;'>Invalid form data</div>`;
+            } else if (event.detail.xhr.status === 500) {
+                target.innerHTML = `<div style='color: red;'>Internal server error, please try again later.</div>`;
+            }
+        });
+    </script>
 </body>
 </html>
