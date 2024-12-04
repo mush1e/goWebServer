@@ -2,8 +2,11 @@ package services
 
 import (
 	"errors"
+	"os"
 	"strings"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/mush1e/goWebServer/internal/database"
 	"github.com/mush1e/goWebServer/internal/models"
 	"golang.org/x/crypto/bcrypt"
@@ -33,4 +36,46 @@ func RegisterUser(username, password string) error {
 	}
 
 	return nil
+}
+
+func LoginUser(username, password string) (string, error) {
+	var user models.User
+	result := database.DB.Where("username = ?", username).First(&user)
+
+	if result.Error != nil {
+		return "", errors.New("invalid username or password")
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+	if err != nil {
+		return "", errors.New("invalid username or password")
+	}
+	tokenString, err := generateJWT(username)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+func generateJWT(username string) (string, error) {
+	secretKey := os.Getenv("JWT_SECRET")
+	if secretKey == "" {
+		return "", errors.New("JWT secret is not set")
+	}
+
+	// Create a new token object, specifying signing method and claims
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"username": username,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+	})
+
+	// Sign the token with the secret key
+	tokenString, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		return "", errors.New("failed to sign token")
+	}
+
+	return tokenString, nil
 }

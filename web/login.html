@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://unpkg.com/htmx.org@1.7.0"></script>
+</head>
+<body>
+    <h1>User Login</h1>
+    <form hx-post="/login" hx-target="#result" hx-swap="innerHTML" id="registration-form"></form>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <br><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br><br>
+
+        <button type="submit">Login</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        document.body.addEventListener('htmx:afterRequest', (event) => {
+            const target = document.querySelector("#result");
+
+            // Handle different status codes
+            if (event.detail.xhr.status === 200) {
+                target.innerHTML = `<div style='color: green;'>Login successful</div>`;
+            } else if (event.detail.xhr.status === 401) {
+                target.innerHTML = `<div style='color: red;'>Invalid login credentials/div>`;
+            } else if (event.detail.xhr.status === 400) {
+                target.innerHTML = `<div style='color: red;'>Invalid form data</div>`;
+            } else if (event.detail.xhr.status === 500) {
+                target.innerHTML = `<div style='color: red;'>Internal server error, please try again later.</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
